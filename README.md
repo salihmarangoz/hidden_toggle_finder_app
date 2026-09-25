@@ -49,7 +49,11 @@ make install
 
 This builds the app, copies it to `/Applications`, and launches it. Apps you build yourself aren't blocked by macOS, so skip step 3. Step 4 applies after every rebuild.
 
-To publish a release, push a tag like `v1.0.0`. GitHub Actions builds the app and attaches `HiddenToggle.zip` to a new release.
+### Versions and releases
+
+The app's version comes from git tags. A build of tag `v1.2.0` is version `1.2.0`. A build from a later commit gets a suffix, like `1.2.0-3-gabc1234`. The version appears in the icon's right-click menu.
+
+To publish a release, push a tag like `v1.2.0`. GitHub Actions builds the app and attaches `HiddenToggle.zip` to a new release. Every other push to `main` also builds the app and keeps the zip as a download on the workflow run.
 
 ## Uninstall
 

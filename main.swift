@@ -26,6 +26,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         loginMenuItem.target = self
         menu.addItem(loginMenuItem)
         menu.addItem(.separator())
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown"
+        menu.addItem(NSMenuItem(title: "Version \(version)", action: nil, keyEquivalent: ""))
         menu.addItem(NSMenuItem(title: "Quit Hidden Toggle", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
 
         registerLoginItemOnFirstLaunch()
