@@ -1,18 +1,35 @@
 APP         = HiddenToggle
 BUNDLE      = build/$(APP).app
 INSTALL_DIR = /Applications
-TARGET      = $(shell uname -m)-apple-macos13.0
+MIN_MACOS   = 13.0
+ARCHS       = arm64 x86_64
 
-.PHONY: all install uninstall clean
+.PHONY: all zip icon install uninstall clean
 
 all: $(BUNDLE)
 
-$(BUNDLE): main.swift Info.plist
+# Universal binary, ad-hoc signed.
+$(BUNDLE): main.swift Info.plist icon/AppIcon.icns
 	rm -rf $(BUNDLE)
-	mkdir -p $(BUNDLE)/Contents/MacOS
-	swiftc -O -target $(TARGET) -o $(BUNDLE)/Contents/MacOS/$(APP) main.swift
+	mkdir -p $(BUNDLE)/Contents/MacOS $(BUNDLE)/Contents/Resources
+	for arch in $(ARCHS); do \
+		swiftc -O -target $$arch-apple-macos$(MIN_MACOS) -o build/$(APP)-$$arch main.swift || exit 1; \
+	done
+	lipo -create $(ARCHS:%=build/$(APP)-%) -output $(BUNDLE)/Contents/MacOS/$(APP)
 	cp Info.plist $(BUNDLE)/Contents/Info.plist
+	cp icon/AppIcon.icns $(BUNDLE)/Contents/Resources/AppIcon.icns
 	codesign --force --sign - $(BUNDLE)
+
+zip: $(BUNDLE)
+	rm -f build/$(APP).zip
+	ditto -c -k --norsrc --noextattr --keepParent $(BUNDLE) build/$(APP).zip
+
+# Regenerates the committed icon files from icon/make-icon.swift.
+icon:
+	rm -rf build/AppIcon.iconset
+	mkdir -p build/AppIcon.iconset
+	swift icon/make-icon.swift build/AppIcon.iconset icon/icon.png
+	iconutil -c icns build/AppIcon.iconset -o icon/AppIcon.icns
 
 install: $(BUNDLE)
 	-pkill -x $(APP)
